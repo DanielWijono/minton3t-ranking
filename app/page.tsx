@@ -48,11 +48,15 @@ const initialLeaderboardData = [
 const getTierColor = (tier: string) => {
   switch (tier) {
     case "PLATINUM PHOENIX":
-      return "#e8d5b5";
+      return "#e5e4e2"; // Platinum
     case "GOLDEN FALCON":
-      return "#d4a853";
+      return "#ffd700"; // Gold
     case "SILVER HAWK":
-      return "#8a9bb3";
+      return "#c0c0c0"; // Silver
+    case "BRONZE MERLIN":
+      return "#cd7f32"; // Bronze
+    case "EMERALD DOVE":
+      return "#50c878"; // Emerald
     default:
       return "#ffffff";
   }
