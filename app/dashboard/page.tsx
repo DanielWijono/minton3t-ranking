@@ -71,11 +71,13 @@ export default function Dashboard() {
             className="min-h-screen w-full text-white p-8"
             style={{
                 background: "linear-gradient(180deg, #0c1929 0%, #132238 40%, #0c1929 100%)",
+                display: "flex",
+                justifyContent: "center",
             }}
         >
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-4xl w-full mx-auto">
                 <h1
-                    className="text-3xl font-bold"
+                    className="text-3xl font-bold text-center"
                     style={{ marginBottom: "64px" }}
                 >
                     Admin Dashboard

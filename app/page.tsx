@@ -153,8 +153,9 @@ export default function Home() {
       className="min-h-screen w-full"
       style={{
         background: "linear-gradient(180deg, #0c1929 0%, #132238 40%, #0c1929 100%)",
-        minWidth: "100%", // Ensure background covers overflow width
-        display: "inline-block" // Ensure it behaves like a layout container
+        minWidth: "100%",
+        display: "flex",
+        justifyContent: "center"
       }}
     >
       {/* Background city overlay effect */}
