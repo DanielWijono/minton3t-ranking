@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 // Dummy data matching the screenshot exactly
-const topThreePlayers = [
+// Dummy data matching the screenshot exactly
+const initialTopThreePlayers = [
   {
     id: 2,
     position: "2nd",
@@ -33,7 +35,7 @@ const topThreePlayers = [
   },
 ];
 
-const leaderboardData = [
+const initialLeaderboardData = [
   { rank: 4, name: "Brian Alexander", tier: "PLATINUM PHOENIX", rating: 1220, initials: "BA" },
   { rank: 5, name: "Delroy Kumara", tier: "GOLDEN FALCON", rating: 1170, initials: "DK" },
   { rank: "1st", name: "Miko", tier: "GOLDEN FALCON", rating: 1169, initials: "MK" },
@@ -72,6 +74,80 @@ const getAvatarGradient = (initials: string) => {
 };
 
 export default function Home() {
+  const [topThreePlayers, setTopThree] = useState<any[]>(initialTopThreePlayers);
+  const [leaderboardData, setLeaderboardData] = useState<any[]>(initialLeaderboardData);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch raw data joining stats and players
+        const { data, error } = await supabase
+          .from('leaderboard_stats')
+          .select(`
+            rating, 
+            tier, 
+            rank,
+            players (
+              username,
+              full_name,
+              initials
+            )
+          `);
+
+        if (error) {
+          console.error("Supabase error:", error);
+          // Don't throw, just let it use dummy data if fetch fails (e.g. empty DB)
+          return;
+        }
+
+        if (data && data.length > 0) {
+          // Transform Supabase shape to App shape
+          const parsed = data.map((item: any) => ({
+            rank: item.rank,
+            rating: item.rating,
+            tier: item.tier,
+            username: item.players?.username,
+            name: item.players?.username, // Compatibility
+            fullName: item.players?.full_name,
+            initials: item.players?.initials || "XX"
+          }));
+
+          // Sort by Rating Descending
+          parsed.sort((a: any, b: any) => b.rating - a.rating);
+
+          // Recalculate Rank based on current sort order
+          parsed.forEach((p: any, idx: number) => {
+            // 1st, 2nd, 3rd logic or numeric
+            if (idx === 0) p.rank = "1st";
+            else if (idx === 1) p.rank = "2nd";
+            else if (idx === 2) p.rank = "3rd";
+            else p.rank = idx + 1;
+          });
+
+          if (parsed.length >= 3) {
+            // Assign Top 3 using the sorted array
+            const top3 = [
+              { ...parsed[1], position: "2nd" }, // 2nd highest rating
+              { ...parsed[0], position: "1st" }, // Highest rating
+              { ...parsed[2], position: "3rd" }, // 3rd highest rating
+            ];
+            setTopThree(top3);
+
+            // Rest of leaderboard
+            setLeaderboardData(parsed.slice(3));
+          } else {
+            // Fallback if less than 3 players
+            setLeaderboardData(parsed);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch leaderboard data", e);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div
       className="min-h-screen w-full"
