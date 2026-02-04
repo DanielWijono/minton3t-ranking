@@ -104,8 +104,8 @@ export default function Home() {
         <section className="relative" style={{ marginBottom: "30px" }}>
           <div className="flex items-end justify-center gap-1 sm:gap-4 scale-90 sm:scale-100 origin-bottom">
             {/* 2nd Place - Left */}
-            <div className="flex flex-col items-center" style={{ width: "100px sm:width: 130px" }}>
-              <span className="text-[#8a9bb3] text-[11px] sm:text-[13px] font-semibold mb-2 sm:mb-3">2nd</span>
+            <div className="flex flex-col items-center w-[100px] sm:w-[130px]">
+              <span className="text-[#8a9bb3] text-[11px] sm:text-[13px] font-semibold mb-2 sm:mb-3 w-full text-center">2nd</span>
               <div
                 className="relative mb-3 rounded-full flex items-center justify-center"
                 style={{
@@ -132,8 +132,8 @@ export default function Home() {
             </div>
 
             {/* 1st Place - Center (elevated) */}
-            <div className="flex flex-col items-center relative" style={{ width: "140px", marginTop: "-10px" }}>
-              <span className="text-[#d4a853] text-[13px] font-semibold mb-3">1st</span>
+            <div className="flex flex-col items-center relative w-[140px]" style={{ marginTop: "-10px" }}>
+              <span className="text-[#d4a853] text-[13px] font-semibold mb-3 w-full text-center">1st</span>
               <div
                 className="relative mb-3 rounded-full flex items-center justify-center"
                 style={{
@@ -161,8 +161,8 @@ export default function Home() {
             </div>
 
             {/* 3rd Place - Right */}
-            <div className="flex flex-col items-center" style={{ width: "130px" }}>
-              <span className="text-[#cd7f32] text-[13px] font-semibold mb-3">3rd</span>
+            <div className="flex flex-col items-center w-[100px] sm:w-[130px]">
+              <span className="text-[#cd7f32] text-[11px] sm:text-[13px] font-semibold mb-3 w-full text-center">3rd</span>
               <div
                 className="relative mb-3 rounded-full flex items-center justify-center"
                 style={{
