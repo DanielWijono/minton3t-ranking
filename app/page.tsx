@@ -80,6 +80,13 @@ const getAvatarGradient = (initials: string) => {
 export default function Home() {
   const [topThreePlayers, setTopThree] = useState<any[]>(initialTopThreePlayers);
   const [leaderboardData, setLeaderboardData] = useState<any[]>(initialLeaderboardData);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredLeaderboard = leaderboardData.filter((player) =>
+    (player.name && player.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (player.tier && player.tier.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -298,10 +305,42 @@ export default function Home() {
             >
               <span className="text-white text-[13px] font-bold">RANK</span>
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-white opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <span className="text-white text-[13px] font-bold">NAME / TIER</span>
+                {isSearchActive ? (
+                  <input
+                    autoFocus
+                    type="text"
+                    className="bg-transparent border-b border-white text-white text-[13px] outline-none w-full placeholder-gray-400"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onBlur={() => {
+                      if (!searchQuery) setIsSearchActive(false);
+                    }}
+                  />
+                ) : (
+                  <>
+                    <svg
+                      onClick={() => setIsSearchActive(true)}
+                      className="w-4 h-4 text-white opacity-80 cursor-pointer hover:opacity-100 transition-opacity"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                    <span
+                      onClick={() => setIsSearchActive(true)}
+                      className="text-white text-[13px] font-bold cursor-pointer hover:text-gray-300 transition-colors"
+                    >
+                      NAME / TIER
+                    </span>
+                  </>
+                )}
               </div>
               <span className="text-white text-[13px] font-bold text-right">RATING</span>
             </div>
@@ -309,7 +348,7 @@ export default function Home() {
 
           {/* Table Body */}
           <div>
-            {leaderboardData.map((player, index) => (
+            {filteredLeaderboard.map((player, index) => (
               <div
                 key={`${player.rank}-${index}`}
                 className="grid items-center transition-colors duration-150 hover:brightness-110"
@@ -317,7 +356,7 @@ export default function Home() {
                   gridTemplateColumns: "50px 1fr 70px",
                   padding: "20px 16px",
                   background: index % 2 === 0 ? "#1a2744" : "#162036",
-                  borderBottom: index < leaderboardData.length - 1 ? "1px solid rgba(42,63,95,0.5)" : "none",
+                  borderBottom: index < filteredLeaderboard.length - 1 ? "1px solid rgba(42,63,95,0.5)" : "none",
                 }}
               >
                 {/* Rank */}
