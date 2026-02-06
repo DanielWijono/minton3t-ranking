@@ -177,7 +177,7 @@ export default function Home() {
         }}
       />
 
-      <div className="relative w-full max-w-[560px] mx-auto px-6 py-8">
+      <div className="relative w-full max-w-[560px] mx-auto px-6" style={{ paddingTop: "140px", paddingBottom: "40px" }}>
         {/* Header Title */}
         <header className="text-center">
           <h1
@@ -205,7 +205,7 @@ export default function Home() {
               >
                 <span className="text-white text-xl font-bold">{topThreePlayers[0].initials}</span>
               </div>
-              <p className="text-white text-[11px] font-semibold text-center truncate w-full leading-tight">
+              <p className="text-white text-[13px] font-semibold text-center w-full leading-tight px-1 h-[32px] flex items-center justify-center">
                 {topThreePlayers[0].name}
               </p>
               <p className="text-white text-[16px] font-bold my-1">{topThreePlayers[0].rating}</p>
@@ -234,7 +234,7 @@ export default function Home() {
               >
                 <span className="text-white text-2xl font-bold">{topThreePlayers[1].initials}</span>
               </div>
-              <p className="text-white text-[13px] font-bold text-center">
+              <p className="text-white text-[15px] font-bold text-center w-full leading-tight px-1 h-[36px] flex items-center justify-center">
                 {topThreePlayers[1].name}
               </p>
               <p className="text-white text-[18px] font-bold my-1">{topThreePlayers[1].rating}</p>
@@ -262,7 +262,7 @@ export default function Home() {
               >
                 <span className="text-white text-xl font-bold">{topThreePlayers[2].initials}</span>
               </div>
-              <p className="text-white text-[11px] font-semibold text-center truncate w-full leading-tight">
+              <p className="text-white text-[13px] font-semibold text-center w-full leading-tight px-1 h-[32px] flex items-center justify-center">
                 {topThreePlayers[2].name}
               </p>
               <p className="text-white text-[16px] font-bold my-1">{topThreePlayers[2].rating}</p>
