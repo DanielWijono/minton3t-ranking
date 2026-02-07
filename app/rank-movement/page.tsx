@@ -3,49 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-// Dummy data matching the screenshot exactly
-const initialTopThreePlayers = [
-    {
-        id: 2,
-        position: "2nd",
-        name: "Calvin Joseph",
-        fullName: "Calvin Joseph",
-        initials: "CJ",
-        rating: 1279,
-        tier: "PLATINUM PHOENIX",
-        ratingChange: 0,
-    },
-    {
-        id: 1,
-        position: "1st",
-        name: "PR",
-        fullName: "PR",
-        initials: "PR",
-        rating: 1307,
-        tier: "PLATINUM PHOENIX",
-        ratingChange: 0,
-    },
-    {
-        id: 3,
-        position: "3rd",
-        name: "HARY LIE",
-        fullName: "Hary Lie",
-        initials: "HL",
-        rating: 1233,
-        tier: "PLATINUM PHOENIX",
-        ratingChange: 0,
-    },
-];
-
-const initialLeaderboardData = [
-    { rank: 4, name: "Brian Alexander", tier: "PLATINUM PHOENIX", rating: 1220, initials: "BA", ratingChange: 0 },
-    { rank: 5, name: "Delroy Kumara", tier: "GOLDEN FALCON", rating: 1170, initials: "DK", ratingChange: 0 },
-    { rank: "1st", name: "Miko", tier: "GOLDEN FALCON", rating: 1169, initials: "MK", ratingChange: 0 },
-    { rank: 6, name: "Yosam / Yohanes Samuel", tier: "GOLDEN FALCON", rating: 1169, initials: "YS", ratingChange: 0 },
-    { rank: 8, name: "HerKu (rovo) / HERRY\nKUHUELA", tier: "SILVER HAWK", rating: 1146, initials: "HK", ratingChange: 0 },
-    { rank: 9, name: "Donny Kwandindo", tier: "SILVER HAWK", rating: 1132, initials: "DK", ratingChange: 0 },
-    { rank: 10, name: "Denny Guna Panjalu", tier: "SILVER HAWK", rating: 1114, initials: "DG", ratingChange: 0 },
-];
+// Removed dummy data - will show loading state instead
 
 const getTierColor = (tier: string) => {
     switch (tier) {
@@ -64,6 +22,12 @@ const getTierColor = (tier: string) => {
     }
 };
 
+// Format rating gain with + prefix for positive values
+const formatRatingGain = (rating: number) => {
+    if (rating > 0) return `+${rating}`;
+    return rating.toString();
+};
+
 // Generate a unique gradient for avatar based on initials
 const getAvatarGradient = (initials: string) => {
     const gradients = [
@@ -80,10 +44,11 @@ const getAvatarGradient = (initials: string) => {
 };
 
 export default function RankMovement() {
-    const [topThreePlayers, setTopThree] = useState<any[]>(initialTopThreePlayers);
-    const [leaderboardData, setLeaderboardData] = useState<any[]>(initialLeaderboardData);
+    const [topThreePlayers, setTopThree] = useState<any[]>([]);
+    const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
 
     const filteredLeaderboard = leaderboardData.filter((player) =>
         (player.name && player.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -93,17 +58,16 @@ export default function RankMovement() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch the latest MVP period
+                // Fetch the January 2026 MVP period (since February is not ended yet)
                 const { data: latestPeriod } = await supabase
                     .from('mvp_periods')
                     .select('id, name')
-                    .order('year', { ascending: false })
-                    .order('month', { ascending: false })
-                    .limit(1)
+                    .eq('year', 2026)
+                    .eq('month', 1)
                     .single();
 
                 if (!latestPeriod) {
-                    console.log("No MVP period found");
+                    console.log("No MVP period found for January 2026");
                     return;
                 }
 
@@ -164,11 +128,30 @@ export default function RankMovement() {
                 }
             } catch (e) {
                 console.error("Failed to fetch leaderboard data", e);
+            } finally {
+                setIsLoading(false);
             }
         };
 
         fetchData();
     }, []);
+
+    // Loading state UI
+    if (isLoading) {
+        return (
+            <div
+                className="min-h-screen w-full flex items-center justify-center"
+                style={{
+                    background: "linear-gradient(180deg, #0c1929 0%, #132238 40%, #0c1929 100%)",
+                }}
+            >
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-[#d4a853] border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-white text-lg font-medium">Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div
@@ -196,6 +179,8 @@ export default function RankMovement() {
                         style={{ fontFamily: "Inter, sans-serif", marginBottom: "30px" }}
                     >
                         RANK MOVEMENT
+                        <br />
+                        <span className="text-[22px] text-[#d4a853]">JANUARI 2026</span>
                     </h1>
                 </header>
 
@@ -220,14 +205,14 @@ export default function RankMovement() {
                                 {topThreePlayers[0].name}
                             </p>
                             <p className="text-white text-[16px] font-bold my-1">
-                                {topThreePlayers[0].rating}
+                                {formatRatingGain(topThreePlayers[0].rating)}
                             </p>
                             <div className="text-center leading-tight">
                                 <p className="text-[9px] font-bold tracking-wide" style={{ color: getTierColor(topThreePlayers[0].tier) }}>
-                                    PLATINUM
+                                    {topThreePlayers[0].tier?.split(' ')[0] || 'PLATINUM'}
                                 </p>
                                 <p className="text-[9px] font-bold tracking-wide" style={{ color: getTierColor(topThreePlayers[0].tier) }}>
-                                    PHOENIX
+                                    {topThreePlayers[0].tier?.split(' ')[1] || 'PHOENIX'}
                                 </p>
                             </div>
                         </div>
@@ -251,14 +236,14 @@ export default function RankMovement() {
                                 {topThreePlayers[1].name}
                             </p>
                             <p className="text-white text-[18px] font-bold my-1">
-                                {topThreePlayers[1].rating}
+                                {formatRatingGain(topThreePlayers[1].rating)}
                             </p>
                             <div className="text-center leading-tight">
                                 <p className="text-[9px] font-bold tracking-wide" style={{ color: getTierColor(topThreePlayers[1].tier) }}>
-                                    PLATINUM
+                                    {topThreePlayers[1].tier?.split(' ')[0] || 'PLATINUM'}
                                 </p>
                                 <p className="text-[9px] font-bold tracking-wide" style={{ color: getTierColor(topThreePlayers[1].tier) }}>
-                                    PHOENIX
+                                    {topThreePlayers[1].tier?.split(' ')[1] || 'PHOENIX'}
                                 </p>
                             </div>
                         </div>
@@ -281,14 +266,14 @@ export default function RankMovement() {
                                 {topThreePlayers[2].name}
                             </p>
                             <p className="text-white text-[16px] font-bold my-1">
-                                {topThreePlayers[2].rating}
+                                {formatRatingGain(topThreePlayers[2].rating)}
                             </p>
                             <div className="text-center leading-tight">
                                 <p className="text-[9px] font-bold tracking-wide" style={{ color: getTierColor(topThreePlayers[2].tier) }}>
-                                    PLATINUM
+                                    {topThreePlayers[2].tier?.split(' ')[0] || 'PLATINUM'}
                                 </p>
                                 <p className="text-[9px] font-bold tracking-wide" style={{ color: getTierColor(topThreePlayers[2].tier) }}>
-                                    PHOENIX
+                                    {topThreePlayers[2].tier?.split(' ')[1] || 'PHOENIX'}
                                 </p>
                             </div>
                         </div>
@@ -413,7 +398,7 @@ export default function RankMovement() {
                                 {/* Rating */}
                                 <div className="text-right">
                                     <span className="text-white text-[20px] font-bold">
-                                        {player.rating}
+                                        {formatRatingGain(player.rating)}
                                     </span>
                                 </div>
                             </div>
