@@ -272,8 +272,8 @@ export default function Dashboard() {
                     <button
                         onClick={() => setUploadType("leaderboard")}
                         className={`px-6 py-2 rounded-lg font-semibold transition-colors border ${uploadType === "leaderboard"
-                                ? "bg-[#d4a853] text-black border-[#d4a853]"
-                                : "bg-transparent text-gray-400 border-[#2a3f5f] hover:text-white"
+                            ? "bg-[#d4a853] text-black border-[#d4a853]"
+                            : "bg-transparent text-gray-400 border-[#2a3f5f] hover:text-white"
                             }`}
                     >
                         League / Leaderboard
@@ -281,8 +281,8 @@ export default function Dashboard() {
                     <button
                         onClick={() => setUploadType("mvp")}
                         className={`px-6 py-2 rounded-lg font-semibold transition-colors border ${uploadType === "mvp"
-                                ? "bg-[#d4a853] text-black border-[#d4a853]"
-                                : "bg-transparent text-gray-400 border-[#2a3f5f] hover:text-white"
+                            ? "bg-[#d4a853] text-black border-[#d4a853]"
+                            : "bg-transparent text-gray-400 border-[#2a3f5f] hover:text-white"
                             }`}
                     >
                         MVP
@@ -327,29 +327,55 @@ export default function Dashboard() {
                                         onClick={async () => {
                                             setIsSyncing(true);
                                             try {
-                                                const { error: deleteError } = await supabase
-                                                    .from('players')
+                                                // Step 1: Delete all leaderboard_stats first (no FK constraints on this table)
+                                                const { error: deleteStatsError } = await supabase
+                                                    .from('leaderboard_stats')
                                                     .delete()
-                                                    .neq('id', '00000000-0000-0000-0000-000000000000');
+                                                    .neq('player_id', '00000000-0000-0000-0000-000000000000');
 
-                                                if (deleteError) throw new Error("Delete failed: " + deleteError.message);
+                                                if (deleteStatsError) throw new Error("Delete stats failed: " + deleteStatsError.message);
 
-                                                const playersToInsert = parsedData.map(p => ({
-                                                    username: p.username,
-                                                    full_name: p.fullName,
-                                                    initials: p.initials,
-                                                }));
+                                                // Step 2: Upsert players (update existing, insert new)
+                                                const allPlayerIds: { username: string; id: string }[] = [];
 
-                                                const { data: insertedPlayers, error: insertError } = await supabase
-                                                    .from('players')
-                                                    .insert(playersToInsert)
-                                                    .select();
+                                                for (const p of parsedData) {
+                                                    // Check if player exists
+                                                    const { data: existingPlayer } = await supabase
+                                                        .from('players')
+                                                        .select('id')
+                                                        .eq('username', p.username)
+                                                        .single();
 
-                                                if (insertError) throw new Error("Insert players failed: " + insertError.message);
-                                                if (!insertedPlayers) throw new Error("No players inserted");
+                                                    if (existingPlayer) {
+                                                        // Update existing player
+                                                        await supabase
+                                                            .from('players')
+                                                            .update({
+                                                                full_name: p.fullName,
+                                                                initials: p.initials,
+                                                            })
+                                                            .eq('id', existingPlayer.id);
+                                                        allPlayerIds.push({ username: p.username, id: existingPlayer.id });
+                                                    } else {
+                                                        // Insert new player
+                                                        const { data: newPlayer, error: insertError } = await supabase
+                                                            .from('players')
+                                                            .insert({
+                                                                username: p.username,
+                                                                full_name: p.fullName,
+                                                                initials: p.initials,
+                                                            })
+                                                            .select('id')
+                                                            .single();
 
+                                                        if (insertError) throw new Error("Insert player failed: " + insertError.message);
+                                                        if (newPlayer) allPlayerIds.push({ username: p.username, id: newPlayer.id });
+                                                    }
+                                                }
+
+                                                // Step 3: Insert new leaderboard stats
                                                 const statsToInsert = parsedData.map(row => {
-                                                    const player = insertedPlayers.find(p => p.username === row.username);
+                                                    const player = allPlayerIds.find(p => p.username === row.username);
                                                     if (!player) return null;
                                                     return {
                                                         player_id: player.id,
