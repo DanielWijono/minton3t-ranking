@@ -46,10 +46,27 @@ export default function Dashboard() {
         fetchDivisions();
     }, []);
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    // Drag and Drop State
+    const [isDragging, setIsDragging] = useState(false);
 
+    const onDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const onDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const onDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file) processFile(file);
+    };
+
+    const processFile = (file: File) => {
         setFileName(file.name);
 
         const reader = new FileReader();
@@ -101,10 +118,32 @@ export default function Dashboard() {
         reader.readAsBinaryString(file);
     };
 
-    const handleMVPFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+        if (file) processFile(file);
+    };
 
+    // MVP Drag and Drop State
+    const [isMVPDragging, setIsMVPDragging] = useState(false);
+
+    const onMVPDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsMVPDragging(true);
+    };
+
+    const onMVPDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsMVPDragging(false);
+    };
+
+    const onMVPDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsMVPDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file) processMVPFile(file);
+    };
+
+    const processMVPFile = (file: File) => {
         setMvpFileName(file.name);
 
         const reader = new FileReader();
@@ -141,6 +180,11 @@ export default function Dashboard() {
             setMvpPreviewData(entries);
         };
         reader.readAsBinaryString(file);
+    };
+
+    const handleMVPFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) processMVPFile(file);
     };
 
     const handleMVPSync = async () => {
@@ -268,21 +312,21 @@ export default function Dashboard() {
                 </h1>
 
                 {/* Upload Type Selector */}
-                <div className="flex justify-center mb-8 gap-4">
+                <div className="flex justify-center gap-8" style={{ marginBottom: "20px" }}>
                     <button
                         onClick={() => setUploadType("leaderboard")}
-                        className={`px-6 py-2 rounded-lg font-semibold transition-colors border ${uploadType === "leaderboard"
-                            ? "bg-[#d4a853] text-black border-[#d4a853]"
-                            : "bg-transparent text-gray-400 border-[#2a3f5f] hover:text-white"
+                        className={`px-10 py-4 min-w-[240px] text-lg rounded-xl font-bold transition-all transform hover:scale-105 border-2 ${uploadType === "leaderboard"
+                            ? "bg-[#d4a853] text-black border-[#d4a853] shadow-[0_0_20px_rgba(212,168,83,0.3)]"
+                            : "bg-transparent text-gray-400 border-[#2a3f5f] hover:text-white hover:border-white"
                             }`}
                     >
                         League / Leaderboard
                     </button>
                     <button
                         onClick={() => setUploadType("mvp")}
-                        className={`px-6 py-2 rounded-lg font-semibold transition-colors border ${uploadType === "mvp"
-                            ? "bg-[#d4a853] text-black border-[#d4a853]"
-                            : "bg-transparent text-gray-400 border-[#2a3f5f] hover:text-white"
+                        className={`px-10 py-4 min-w-[240px] text-lg rounded-xl font-bold transition-all transform hover:scale-105 border-2 ${uploadType === "mvp"
+                            ? "bg-[#d4a853] text-black border-[#d4a853] shadow-[0_0_20px_rgba(212,168,83,0.3)]"
+                            : "bg-transparent text-gray-400 border-[#2a3f5f] hover:text-white hover:border-white"
                             }`}
                     >
                         MVP
@@ -300,12 +344,20 @@ export default function Dashboard() {
                                 Upload Leaderboard Excel
                             </h2>
                             <div className="flex items-center gap-4">
-                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#2a3f5f] border-dashed rounded-lg cursor-pointer hover:bg-[#1a2744] transition-colors">
+                                <label
+                                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-300 ${isDragging
+                                        ? "border-[#d4a853] bg-[#d4a853]/10"
+                                        : "border-[#2a3f5f] hover:bg-[#1a2744]"
+                                        }`}
+                                    onDragOver={onDragOver}
+                                    onDragLeave={onDragLeave}
+                                    onDrop={onDrop}
+                                >
                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <svg className="w-8 h-8 mb-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                        <svg className={`w-10 h-10 mb-4 transition-colors ${isDragging ? "text-[#d4a853]" : "text-gray-400"}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
                                             <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
                                         </svg>
-                                        <p className="text-sm text-gray-400" style={{ marginBottom: "24px" }}>
+                                        <p className={`text-sm mb-2 ${isDragging ? "text-[#d4a853]" : "text-gray-400"}`}>
                                             <span className="font-semibold">Click to upload</span> or drag and drop
                                         </p>
                                         <p className="text-xs text-gray-500">.XLSX or .CSV files</p>
@@ -476,12 +528,20 @@ export default function Dashboard() {
                             </div>
 
                             <div className="flex items-center gap-4">
-                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#2a3f5f] border-dashed rounded-lg cursor-pointer hover:bg-[#1a2744] transition-colors">
+                                <label
+                                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-300 ${isMVPDragging
+                                        ? "border-[#d4a853] bg-[#d4a853]/10"
+                                        : "border-[#2a3f5f] hover:bg-[#1a2744]"
+                                        }`}
+                                    onDragOver={onMVPDragOver}
+                                    onDragLeave={onMVPDragLeave}
+                                    onDrop={onMVPDrop}
+                                >
                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <svg className="w-8 h-8 mb-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                        <svg className={`w-10 h-10 mb-4 transition-colors ${isMVPDragging ? "text-[#d4a853]" : "text-gray-400"}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
                                             <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
                                         </svg>
-                                        <p className="text-sm text-gray-400" style={{ marginBottom: "24px" }}>
+                                        <p className={`text-sm mb-2 ${isMVPDragging ? "text-[#d4a853]" : "text-gray-400"}`}>
                                             <span className="font-semibold">Click to upload</span> or drag and drop
                                         </p>
                                         <p className="text-xs text-gray-500">.XLSX or .CSV files (Structure: No, Name, Rating Gain, Event, Division)</p>
