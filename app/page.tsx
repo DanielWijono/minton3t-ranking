@@ -62,7 +62,8 @@ export default function Home() {
             players (
               username,
               full_name,
-              initials
+              initials,
+              alternate_name
             )
           `);
 
@@ -79,7 +80,7 @@ export default function Home() {
             rating: item.rating,
             tier: item.tier,
             username: item.players?.username,
-            name: item.players?.username, // Compatibility
+            name: item.players?.alternate_name || item.players?.full_name, // Prioritize alternate_name
             fullName: item.players?.full_name,
             initials: item.players?.initials || "XX"
           }));
