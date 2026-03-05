@@ -49,6 +49,7 @@ export default function RankMovement() {
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const [periodTitle, setPeriodTitle] = useState("");
 
     const filteredLeaderboard = leaderboardData.filter((player) =>
         (player.name && player.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -58,18 +59,49 @@ export default function RankMovement() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch the January 2026 MVP period (since February is not ended yet)
-                const { data: latestPeriod } = await supabase
+                const currentDate = new Date();
+                let targetYear = currentDate.getFullYear();
+                let targetMonth = currentDate.getMonth(); // 0 is Jan, so currentMonth (0-indexed) happens to be the 1-based previous month
+                
+                if (targetMonth === 0) {
+                    targetMonth = 12;
+                    targetYear -= 1;
+                }
+
+                // Try to fetch the target period (1 month before current)
+                let { data: latestPeriod } = await supabase
                     .from('mvp_periods')
-                    .select('id, name')
-                    .eq('year', 2026)
-                    .eq('month', 1)
-                    .single();
+                    .select('id, name, month, year')
+                    .eq('year', targetYear)
+                    .eq('month', targetMonth)
+                    .maybeSingle();
+
+                // If not found, fallback to the latest existing period
+                if (!latestPeriod) {
+                    const { data: fallbackPeriods } = await supabase
+                        .from('mvp_periods')
+                        .select('id, name, month, year')
+                        .order('year', { ascending: false })
+                        .order('month', { ascending: false })
+                        .limit(1);
+                        
+                    if (fallbackPeriods && fallbackPeriods.length > 0) {
+                        latestPeriod = fallbackPeriods[0];
+                    }
+                }
 
                 if (!latestPeriod) {
-                    console.log("No MVP period found for January 2026");
+                    console.log("No MVP periods found");
+                    setPeriodTitle("TIDAK ADA DATA");
+                    setIsLoading(false);
                     return;
                 }
+
+                const indonesianMonths = [
+                    "JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", 
+                    "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"
+                ];
+                setPeriodTitle(`${indonesianMonths[latestPeriod.month - 1]} ${latestPeriod.year}`);
 
                 // Fetch MVP entries with player data, sorted by rating_gain
                 const { data, error } = await supabase
@@ -180,7 +212,7 @@ export default function RankMovement() {
                     >
                         RANK MOVEMENT
                         <br />
-                        <span className="text-[22px] text-[#d4a853]">JANUARI 2026</span>
+                        <span className="text-[22px] text-[#d4a853]">{periodTitle || "MEMUAT..."}</span>
                     </h1>
                 </header>
 
